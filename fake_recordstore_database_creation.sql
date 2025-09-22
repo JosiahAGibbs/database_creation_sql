@@ -82,5 +82,32 @@ INSERT INTO order_items (order_id, product_id, qty, unit_price_cents) VALUES
 (1011,106,1,2599),
 (1011,105,2,999);
 
-SELECT *
-FROM order_items
+WITH order_totals AS
+	(SELECT 
+		o1.order_id,
+		o1.order_date,
+		SUM(o2.qty * o2.unit_price_cents) AS order_cents
+	FROM orders AS o1
+	INNER JOIN order_items AS o2
+	USING (order_id)
+	GROUP BY
+		o1.order_id,
+		o1.order_date)
+SELECT
+	order_date,
+	ROUND(order_cents/100,2) AS daily_revenue
+FROM order_totals
+ORDER BY order_date DESC;
+
+WITH order_totals AS
+	(SELECT 
+		o1.order_id,
+		SUM(o2.qty * o2.unit_price_cents) AS order_cents
+	FROM orders AS o1
+	INNER JOIN order_items AS o2
+	USING (order_id)
+	GROUP BY
+		o1.order_id)
+SELECT 
+	ROUND(AVG (order_cents)/100,2) AS avg_order_amt
+FROM order_totals
